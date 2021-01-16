@@ -22,11 +22,11 @@ public class Main {
 		
 		System.out.println(JSON.toJSONString(pretreatedFile));*/
 
-		//EnumImporter enumImporter=new EnumImporter("D:\\maildir");
+		EnumImporter enumImporter=new EnumImporter("D:\\maildir");
 
-		Pretreater pretreater=new Pretreater();
-		pretreater.setFile(new File("D:\\maildir\\allen-p\\inbox\\1"));
-		System.out.println(pretreater.pretreat());
+		/*Pretreater pretreater=new Pretreater();
+		String jsonString=pretreater.pretreatFile(new File("D:\\maildir\\allen-p\\inbox\\1"));
+		enumImporter.importJSONString(jsonString);*/
 	}
 
 }

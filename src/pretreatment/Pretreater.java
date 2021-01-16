@@ -6,44 +6,57 @@ import java.io.IOException;
 
 import com.alibaba.fastjson.JSON;
 
-import assets.Separator;
+import assets.WordKit;
 
 public class Pretreater {//预处理后将文档保存为JSON String然后返回
     private String string;
     private String jsonString;
+    private String originalPath;
 
     public Pretreater() {
     }
 
-    public void setFile(File file) throws IOException {
-    	char[] c=new char[32768];
+    //返回预处理完的jsonString
+    public String pretreatFile(File file) throws IOException {
+        originalPath=file.getAbsolutePath();
+    	char[] c=new char[65536];                            //按需
         FileReader fileReader=new FileReader(file);
         fileReader.read(c);
         string=new String(c);
         fileReader.close();
-        System.out.println(string);
+        //System.out.println(originalPath);
+        //System.out.println(string);
+        return(pretreat());
     }
 
-    public String pretreat(){
-        String[] wordsArray=new String[4096];
+    private String pretreat(){
+        String[] wordsArray=new String[16384];               //按需
         PretreatedFile pretreatedFile=new PretreatedFile();
+        String word;
 
-        int j=0,beginIndex=0;
+        int j=0,beginIndex=0;//分词-词根还原-去停用词
         for(int i=0;i<string.length();i++){
-        	System.out.println("char is: "+string.charAt(i));
-            if(Separator.isSeparator(string.charAt(i))){
+        	//System.out.println("char is: "+string.charAt(i));
+            if(WordKit.isSeparator(string.charAt(i))){
                 if(beginIndex==i)beginIndex++;
                 else{
-                    wordsArray[j]=string.substring(beginIndex, i);
-                	System.out.println("word is:"+wordsArray[j]);
-                    j++;
+                    word=WordKit.stemming(string.substring(beginIndex, i));
+                    if(WordKit.isStopWord(word)){
+                        //System.out.println("stop word is:"+word);
+                    }
+                    else{
+                        wordsArray[j]=word;
+                        //System.out.println("word is:"+word);
+                        j++;
+                    }
                     beginIndex=i+1;
                 }
             }
         }
+        String[] wordsArrayCutted=new String[j];
 
-        pretreatedFile.setOriginalPath("sui/bian/xie");
-        pretreatedFile.setWordsArray(wordsArray);
+        pretreatedFile.setOriginalPath(originalPath);
+        pretreatedFile.setWordsArray(wordsArrayCutted);
         pretreatedFile.setWordsNum(j);
 
         jsonString=JSON.toJSONString(pretreatedFile);
