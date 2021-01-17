@@ -32,9 +32,13 @@ public class EnumImporter {// 给文件夹路径，枚举其中的文档，整�
     }
 
     private void importJSONString(String jsonString) throws IOException {
-        String filePath="src\\assets\\pretreatedFiles\\"+counter+".txt";
+        if(counter==(counter/100)*100)System.out.println("writing "+counter);
+        String filePath="E:\\HSIO-Workspace\\"+counter+".txt";
         File file=new File(filePath);
-        file.createNewFile();
+
+        if(file.createNewFile()==false)return;//仅在测试的时候避免同内容反复写使用
+        //file.createNewFile();             //生产环境请用这一行
+
         counter++;
 
         FileWriter fileWriter=new FileWriter(file,false);

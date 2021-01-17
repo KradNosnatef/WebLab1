@@ -54,6 +54,7 @@ public class Pretreater {//预处理后将文档保存为JSON String然后返回
             }
         }
         String[] wordsArrayCutted=new String[j];
+        System.arraycopy(wordsArray,0,wordsArrayCutted,0,j);
 
         pretreatedFile.setOriginalPath(originalPath);
         pretreatedFile.setWordsArray(wordsArrayCutted);
