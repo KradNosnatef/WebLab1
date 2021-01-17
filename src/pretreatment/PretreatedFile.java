@@ -4,6 +4,7 @@ public class PretreatedFile {//类化的已预处理的文件
     private String originalPath;
     private String[] wordsArray;
     private int wordsNum;
+    private int counter;
     
     public void setOriginalPath(String originalPath) {
     	this.originalPath=originalPath;
@@ -24,5 +25,23 @@ public class PretreatedFile {//类化的已预处理的文件
     }
     public int getWordsNum() {
     	return(wordsNum);
+    }
+
+    public void setCounter(int counter){
+        this.counter=counter;
+    }
+    public int getCounter(){
+        return(counter);
+    }
+
+    public PretreatedFile(String originalPath,String[] wordsArray,int wordsNum,int counter){
+        this.originalPath=originalPath;
+    	this.wordsArray=wordsArray;
+    	this.wordsNum=wordsNum;
+        this.counter=counter;
+    }
+
+    public PretreatedFile(){
+        
     }
 }

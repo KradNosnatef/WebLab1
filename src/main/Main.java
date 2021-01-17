@@ -6,6 +6,7 @@ import java.io.IOException;
 import com.alibaba.fastjson.JSON;
 
 import pretreatment.EnumImporter;
+import pretreatment.InvertedIndex;
 import pretreatment.PretreatedFile;
 import pretreatment.Pretreater;
 
@@ -22,11 +23,15 @@ public class Main {
 		
 		System.out.println(JSON.toJSONString(pretreatedFile));*/
 
-		EnumImporter enumImporter=new EnumImporter("E:\\maildir");
+		//EnumImporter enumImporter=new EnumImporter("E:\\maildir\\allen-p");
 
 		/*Pretreater pretreater=new Pretreater();
 		String jsonString=pretreater.pretreatFile(new File("D:\\maildir\\allen-p\\inbox\\1"));
 		enumImporter.importJSONString(jsonString);*/
+
+		InvertedIndex invertedIndex=new InvertedIndex("E:\\TEMP-Workspace");
+		invertedIndex.invert(invertedIndex.loadPretreatedFile(1));
+
 	}
 
 }

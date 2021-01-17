@@ -6,32 +6,31 @@ import java.io.IOException;
 
 public class EnumImporter {// 给文件夹路径，枚举其中的文档，整到项目文件夹里来
     private File rootFile;
-    private Pretreater pretreater;
     private int counter;
-    private File[] fileToBePretreatList;
+    private File[] fileToBePretreatArray;
 
 
     public EnumImporter(String rootFileDirectory) {
         rootFile = new File(rootFileDirectory);
-        pretreater = new Pretreater();
+        new Pretreater();
         counter=0;
-        fileToBePretreatList=new File[1048576];                 //按需
+        fileToBePretreatArray=new File[1048576];                 //按需
         dfs(rootFile);
 
-        //for(int i=0;i<counter;i++)System.out.println(fileToBePretreatList[i].getName());
-        RunnableImport runnableImport=new RunnableImport(fileToBePretreatList, counter);	//多线程import，使用合适的thread数目以最大化利用cpu和io
-        Thread[] threadList=new Thread[16];
-        for(int i=0;i<threadList.length;i++)threadList[i]=new Thread(runnableImport,"Thread:"+i);
-        for(int i=0;i<threadList.length;i++)threadList[i].start();
+        //for(int i=0;i<counter;i++)System.out.println(fileToBePretreatArray[i].getName());
+        RunnableImport runnableImport=new RunnableImport(fileToBePretreatArray, counter);	//多线程import，使用合适的thread数目以最大化利用cpu和io
+        Thread[] threadArray=new Thread[16];
+        for(int i=0;i<threadArray.length;i++)threadArray[i]=new Thread(runnableImport,"Thread:"+i);
+        for(int i=0;i<threadArray.length;i++)threadArray[i].start();
     }
 
     private void dfs(File file) {
         if (file.isDirectory()) {
-            File[] fileList = file.listFiles();
-            for (int i = 0; i < fileList.length; i++)
-                dfs(fileList[i]);
+            File[] fileArray = file.listFiles();
+            for (int i = 0; i < fileArray.length; i++)
+                dfs(fileArray[i]);
         } else {
-            fileToBePretreatList[counter]=file;
+            fileToBePretreatArray[counter]=file;
             counter++;
         }
     }
@@ -52,11 +51,11 @@ public class EnumImporter {// 给文件夹路径，枚举其中的文档，整�
 
     class RunnableImport implements Runnable{
         private int length;
-        private File[] fileList;
+        private File[] fileArray;
         private Pretreater pretreater;
         
-        public RunnableImport(File[] fileList,int length){
-            this.fileList=fileList;
+        public RunnableImport(File[] fileArray,int length){
+            this.fileArray=fileArray;
             this.length=length;
             this.pretreater=new Pretreater();
         }
@@ -64,7 +63,7 @@ public class EnumImporter {// 给文件夹路径，枚举其中的文档，整�
         public void run(){
             for(int i=0;i<length;i++){
                 try {
-                    runnableImportJSONString(pretreater.pretreatFile(fileList[i]),i);
+                    runnableImportJSONString(pretreater.pretreatFile(fileArray[i],i),i);
                 } catch (IOException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
