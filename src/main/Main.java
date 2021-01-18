@@ -1,6 +1,7 @@
 package main;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 
 import com.alibaba.fastjson.JSON;
@@ -12,26 +13,17 @@ import pretreatment.Pretreater;
 
 public class Main {
 
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws IOException, InterruptedException {
 		// TODO Auto-generated method stub
 		System.out.println("day0!");
-		/*PretreatedFile pretreatedFile=new PretreatedFile();
-		pretreatedFile.setOriginalPath("123");
-		
-		String[] wordsArray= {"123","456"};
-		pretreatedFile.setWordsArray(wordsArray);
-		
-		System.out.println(JSON.toJSONString(pretreatedFile));*/
 
-		//EnumImporter enumImporter=new EnumImporter("E:\\maildir\\allen-p");
+		EnumImporter enumImporter=new EnumImporter("T:\\maildir\\allen-p");
+		enumImporter.saveAt("T:\\TEMP-Workspace",16);
+		//PretreatedFile[] pretreatedFileArray=new PretreatedFile[1048576];
+		//enumImporter.loadFrom(pretreatedFileArray,"E:\\TEMP-Workspace",16);
 
-		/*Pretreater pretreater=new Pretreater();
-		String jsonString=pretreater.pretreatFile(new File("D:\\maildir\\allen-p\\inbox\\1"));
-		enumImporter.importJSONString(jsonString);*/
-
-		InvertedIndex invertedIndex=new InvertedIndex("E:\\TEMP-Workspace");
-		invertedIndex.invert(invertedIndex.loadPretreatedFile(1));
+		InvertedIndex invertedIndex=new InvertedIndex("T:\\TEMP-Workspace");
+		invertedIndex.invertAll();
 
 	}
-
 }
