@@ -1,23 +1,14 @@
 package pretreatment;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 
-import com.alibaba.fastjson.JSON;
-
-import pretreatment.InvertedIndexesList.StemNode;
-
-public class InvertedIndex {
+public class Inverter {
     String rootPath;
-    //public InvertedIndexesList invertedIndexesList;
     public InvertedIndexTree invertedIndexTree;
 
-    public InvertedIndex(String rootPath) {// 使用预处理文件存放根目录来创建倒排器实例
+    public Inverter(String rootPath) {// 使用预处理文件存放根目录来创建倒排器实例
         this.rootPath = rootPath;
         invertedIndexTree=new InvertedIndexTree();
-
     }
 
     public void invert(PretreatedFile pretreatedFile){
@@ -37,7 +28,5 @@ public class InvertedIndex {
         for(int i=0;i<counts;i++){
             invert(pretreatedFileArray[i]);
         }
-
-        invertedIndexTree.saveAt("T:\\IndexSpace",12);
     }
 }

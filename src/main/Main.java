@@ -1,16 +1,9 @@
 package main;
 
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 
-import com.alibaba.fastjson.JSON;
-
 import pretreatment.EnumImporter;
-import pretreatment.InvertedIndex;
-import pretreatment.InvertedIndexTree;
-import pretreatment.PretreatedFile;
-import pretreatment.Pretreater;
+import pretreatment.Inverter;
 
 public class Main {
 
@@ -20,16 +13,10 @@ public class Main {
 
 		EnumImporter enumImporter=new EnumImporter("T:\\maildir");
 		enumImporter.saveAt("T:\\TEMP-Workspace",16);
-		//PretreatedFile[] pretreatedFileArray=new PretreatedFile[1048576];
-		//enumImporter.loadFrom(pretreatedFileArray,"E:\\TEMP-Workspace",16);
 
-		InvertedIndex invertedIndex=new InvertedIndex("T:\\TEMP-Workspace");
-		invertedIndex.invertAll();
+		Inverter inverter=new Inverter("T:\\TEMP-Workspace");
+		inverter.invertAll();
+		inverter.invertedIndexTree.saveAt("T:\\IndexSpace",12);
 
-
-		//InvertedIndexTree invertedIndexTree=new InvertedIndexTree();
-		//invertedIndexTree.insertWord("abandon", 0);
-		//System.out.println(JSON.toJSONString(invertedIndexTree));
-		//invertedIndexTree.saveAt("T:\\indexSpace",12);
 	}
 }

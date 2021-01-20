@@ -114,8 +114,60 @@ public class InvertedIndexTree {
             }
         }
 
-        public void merge(CharNode charNode2){//拼接，将charNode2上的链表拼接到本节点链表上
+        public void graft(CharNode charNode2){//嫁接，将charNode2上的freq链表拼接到本节点链表上，删除其head以外的节点，不对其它节点作出操作
+            if(this.freqNode.frequency==1||charNode2.freqNode.frequency==1){//有序拼接
+                this.freqNode.initSort();
+                charNode2.freqNode.initSort();
 
+                FreqNode headBuf,freqNodeBuf,freqNodeBuf1=this.freqNode.znext,freqNodeBuf2=charNode2.freqNode.znext;
+                freqNodeBuf=new FreqNode(-1,1);
+                headBuf=freqNodeBuf;
+
+                int shorter=0;
+                for(;;){
+                    if(freqNodeBuf1==null)shorter=1;
+                    if(freqNodeBuf2==null)shorter=2;
+                    if(shorter!=0)break;
+
+                    if(freqNodeBuf1.counter<freqNodeBuf2.counter){
+                        freqNodeBuf.znext=new FreqNode(freqNodeBuf1.counter,freqNodeBuf1.frequency);
+                        freqNodeBuf=freqNodeBuf.znext;
+                        freqNodeBuf1=freqNodeBuf1.znext;
+                    }
+                    else if(freqNodeBuf1.counter==freqNodeBuf2.counter){
+                        freqNodeBuf.znext=new FreqNode(freqNodeBuf1.counter,freqNodeBuf1.frequency+freqNodeBuf2.frequency);
+                        freqNodeBuf=freqNodeBuf.znext;
+                        freqNodeBuf1=freqNodeBuf1.znext;
+                        freqNodeBuf2=freqNodeBuf2.znext;
+                    }
+                    else {
+                        freqNodeBuf.znext=new FreqNode(freqNodeBuf2.counter,freqNodeBuf2.frequency);
+                        freqNodeBuf=freqNodeBuf.znext;
+                        freqNodeBuf2=freqNodeBuf2.znext;
+                    }
+                }
+
+                if(shorter==1)freqNodeBuf.znext=freqNodeBuf2;
+                else freqNodeBuf.znext=freqNodeBuf1;
+                this.freqNode=headBuf;
+                charNode2.freqNode.znext=null;
+            }
+            else {//无序拼接
+                FreqNode freqNodeBuf=this.freqNode.getTail();
+                freqNodeBuf.znext=charNode2.freqNode.znext;
+                charNode2.freqNode.znext=null;
+            }
+        }
+
+        public void merge(CharNode charNode2){//合并，把以charNode2为根的子树合并到本节点上，请务必保证本节点和它节点是“同位体”
+            graft(charNode2);
+            for(int i=0;i<36;i++){
+                if(this.znextChar[i]==null){
+                    this.znextChar[i]=charNode2.znextChar[i];
+                    charNode2.znextChar[i]=null;
+                }
+                else if(charNode2.znextChar[i]!=null)this.znextChar[i].merge(charNode2.znextChar[i]);
+            }
         }
 
         public class FreqNode {
@@ -135,27 +187,36 @@ public class InvertedIndexTree {
                 this.znext = null;
             }
 
-            // 对以本节点为head的链表的counter升序排序，并且会对同counter的节点作合并处理
-            // 只能用于未初始化的Freq链表！否则会无操作返回
+            public int getLength(){//返回自己以后（不含自己）的链表节点数量
+                int length=0;
+                FreqNode freqNode=this.znext;
+                for(;;){
+                    if(freqNode==null)break;
+                    length++;
+                    freqNode=freqNode.znext;
+                }
+                return(length);
+            }
+
+            public FreqNode getTail(){
+                if(this.znext==null)return(this);
+                else return(this.znext.getTail());
+            }
+
+            // 对以本节点为head的无序链表的counter升序排序，并且会对同counter的节点作合并处理，如果链表已经有序则无操作直接返回
             public void initSort() {
                 if (counter != -1) {
                     System.out.println("cannot run initSort in no-head node");
                     return;
                 }
                 if (frequency == 1) {
-                    System.out.println("already initiated");
+                    //System.out.println("already initiated");
                     return;
                 }
                 this.frequency = 1;
-                int num = 0;
-                FreqNode freqNode = this.znext;
-                for (;;) {
-                    if (freqNode == null)
-                        break;
-                    num++;
-                    freqNode = freqNode.znext;
-                }
+                int num = getLength();
 
+                FreqNode freqNode = this.znext;
                 int[] buf = new int[num];
                 freqNode = this.znext;
                 for (int i = 0;;) {
