@@ -347,4 +347,10 @@ public class InvertedIndexTree {
             }
         }
     }
+
+    public void loadFrom(String path,int threadNum){
+
+    }
+
+
 }
