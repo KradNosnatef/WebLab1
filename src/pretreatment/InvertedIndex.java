@@ -11,12 +11,12 @@ import pretreatment.InvertedIndexesList.StemNode;
 
 public class InvertedIndex {
     String rootPath;
-    public InvertedIndexesList invertedIndexesList;
+    //public InvertedIndexesList invertedIndexesList;
+    public InvertedIndexTree invertedIndexTree;
 
     public InvertedIndex(String rootPath) {// 使用预处理文件存放根目录来创建倒排器实例
         this.rootPath = rootPath;
-        invertedIndexesList=new InvertedIndexesList();
-        //System.out.println(JSON.toJSONString(invertedIndexesList));
+        invertedIndexTree=new InvertedIndexTree();
 
     }
 
@@ -24,13 +24,9 @@ public class InvertedIndex {
         String[] wordsArray=pretreatedFile.getWordsArray();
         int counter=pretreatedFile.getCounter();
         for(int i=0;i<pretreatedFile.getWordsNum();i++){
-            //System.out.println("inserting "+wordsArray[i]);
-            invertedIndexesList.insert(wordsArray[i],counter);
-            //System.out.println(JSON.toJSONString(invertedIndexesList));
-            //System.out.println(JSON.toJSONString(invertedIndexesList.stem[34]));
+            invertedIndexTree.insertWord(wordsArray[i],counter);
         }
         System.out.println("file "+counter+" inverted");
-        //System.out.println(JSON.toJSONString(invertedIndexesList));
     }
 
     public void invertAll() throws IOException, InterruptedException {
@@ -42,6 +38,6 @@ public class InvertedIndex {
             invert(pretreatedFileArray[i]);
         }
 
-        invertedIndexesList.saveAt("T:\\IndexSpace",12);
+        invertedIndexTree.saveAt("T:\\IndexSpace",12);
     }
 }

@@ -1,5 +1,289 @@
 package pretreatment;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Arrays;
+
+import com.alibaba.fastjson.JSON;
+
+import assets.WordKit;
+
+//每个字母节点存储一个后续字母数组，和一个频率统计链表，该链表是“从树根到当前位置路径上的节点拼成的单词对应的频率统计信息”
+//频率链表的第一个节点用于储存有序无序相关信息，初次初始化构建链表的时候简单拼接各个文档的单词出现信息，这是无序的，链表中的所有freq都应当是0
+//链表对应的单词首次被搜索会使它启动有序化
+//对两个树进行merge操作的时候，对于同单词合并，当且仅当两个链表都是无序链表时才使用简单拼接成一个新的无序链表，否则拼接成有序链表
+
 public class InvertedIndexTree {
-    
+    public CharNode headChar; // wordtree的头，本身不代表任何字母
+
+    public class CharNode {
+        public char thisChar;
+        public CharNode[] znextChar;
+        public FreqNode freqNode;
+
+        public CharNode() {// 简单的留空节点
+            znextChar = new CharNode[36];
+            for (int i = 0; i < 36; i++)
+                znextChar[i] = null;
+            freqNode = new FreqNode(-1);
+        }
+
+        public CharNode(char c) {// 明确本节点是什么字母
+            this.thisChar = c;
+            znextChar = new CharNode[36];
+            for (int i = 0; i < 36; i++)
+                znextChar[i] = null;
+            freqNode = new FreqNode(-1);
+        }
+
+        public boolean existCheck() {// 检查本节点对应的字母下的freq链表是否是空链表
+            if (freqNode.znext == null)
+                return (false);
+            else
+                return (true);
+        }
+
+        public void insertFreqNode(int counter) {// 标准的单个插入
+            if (freqNode.frequency == 1) {// 有序插入
+                FreqNode freqNodeBuf = searchFreqNode(counter, 1);
+                FreqNode freqNodeBufNext = freqNodeBuf.znext;
+                freqNodeBuf.znext = new FreqNode(counter, 1);
+                freqNodeBuf.znext.znext = freqNodeBufNext;
+            } else {// 无序头插
+                FreqNode freqNodeBuf = freqNode.znext;
+                freqNode.znext = new FreqNode(counter);
+                freqNode.znext.znext = freqNodeBuf;
+            }
+        }
+
+        public void insertFreqNode(int counter, int frequency) {// 插入带频率信息的节点，如果链表无序将会被有序化
+            FreqNode freqNodeBuf = searchFreqNode(counter, 1);
+            FreqNode freqNodeBufNext = freqNodeBuf.znext;
+            freqNodeBuf.znext = new FreqNode(counter, frequency);
+            freqNodeBuf.znext.znext = freqNodeBufNext;
+        }
+
+        public FreqNode searchFreqNode(int counter, int mode) {// mode0为默认方法的重载，mode1搜索首先会确认freq链是否有序（无序则会跑一次sort），然后返回最大的值不大于counter的节点，如果链表只有头则会返回头
+            switch (mode) {
+                case 0: {
+                    return (searchFreqNode(counter));
+                }
+                case 1: {
+                    if (freqNode.frequency == 0)
+                        freqNode.initSort();
+                    FreqNode freqNodeBuf = freqNode;
+                    for (;;) {
+                        if (freqNodeBuf.counter == counter)
+                            break;
+                        if (freqNodeBuf.znext == null)
+                            break;
+                        if (freqNodeBuf.znext.counter > counter)
+                            break;
+                    }
+                    return (freqNodeBuf);
+                }
+                default: {
+                    System.out.println("mode error");
+                    return (null);
+                }
+            }
+        }
+
+        public FreqNode searchFreqNode(int counter) {// 返回counter匹配的节点，否则返回null
+            if (freqNode.frequency == 1) {
+                FreqNode freqNodeBuf = freqNode.znext;
+                for (;;) {
+                    if (freqNodeBuf == null)
+                        return (null);
+                    if (freqNodeBuf.counter > counter)
+                        return (null);
+                    if (freqNodeBuf.counter == counter)
+                        return (freqNodeBuf);
+                    freqNodeBuf = freqNodeBuf.znext;
+                }
+            } else {
+                FreqNode freqNodeBuf = freqNode.znext;
+                for (;;) {
+                    if (freqNodeBuf == null)
+                        return (null);
+                    if (freqNodeBuf.counter == counter)
+                        return (freqNodeBuf);
+                    freqNodeBuf = freqNodeBuf.znext;
+                }
+            }
+        }
+
+        public void merge(CharNode charNode2){//拼接，将charNode2上的链表拼接到本节点链表上
+
+        }
+
+        public class FreqNode {
+            public int counter;// 为-1代表是一个head节点
+            public int frequency;// head节点的该值为0代表未经初始化（无序），为1代表有序（升序！）
+            public FreqNode znext;
+
+            public FreqNode(int counter) {// 只含counter的默认创建
+                this.counter = counter;
+                this.frequency = 0;
+                this.znext = null;
+            }
+
+            public FreqNode(int counter, int frequency) {// 用于有序插入
+                this.counter = counter;
+                this.frequency = frequency;
+                this.znext = null;
+            }
+
+            // 对以本节点为head的链表的counter升序排序，并且会对同counter的节点作合并处理
+            // 只能用于未初始化的Freq链表！否则会无操作返回
+            public void initSort() {
+                if (counter != -1) {
+                    System.out.println("cannot run initSort in no-head node");
+                    return;
+                }
+                if (frequency == 1) {
+                    System.out.println("already initiated");
+                    return;
+                }
+                this.frequency = 1;
+                int num = 0;
+                FreqNode freqNode = this.znext;
+                for (;;) {
+                    if (freqNode == null)
+                        break;
+                    num++;
+                    freqNode = freqNode.znext;
+                }
+
+                int[] buf = new int[num];
+                freqNode = this.znext;
+                for (int i = 0;;) {
+                    if (freqNode == null)
+                        break;
+                    buf[i] = freqNode.counter;
+                    freqNode = freqNode.znext;
+                }
+
+                Arrays.sort(buf);
+
+                freqNode = this.znext;
+                for (int i = 0;;) {
+                    if (freqNode == null)
+                        break;
+                    freqNode.counter = buf[i];
+                    freqNode = freqNode.znext;
+                }
+
+                // 合并同类项
+                freqNode = this.znext;
+                freqNode.frequency = 1;
+                for (;;) {
+                    if (freqNode == null)
+                        break;
+                    if (freqNode.znext == null)
+                        break;
+                    if (freqNode.counter == freqNode.znext.counter) {
+                        freqNode.frequency++;
+                        freqNode.znext = freqNode.znext.znext;
+                    } else {
+                        freqNode.znext.frequency = 1;
+                        freqNode = freqNode.znext;
+                    }
+                }
+
+            }
+
+        }
+    }
+
+    public InvertedIndexTree() {
+        headChar = new CharNode();
+        for(int i=0;i<36;i++){
+            headChar.znextChar[i]=new CharNode(WordKit.int36toc(i));
+        }
+    }
+
+    public CharNode searchCharNode(String word) {// 标准搜索，返回word对应的charnode，如无则返回null
+        CharNode charNode = headChar;
+
+        int char36;
+        for (int i = 0; i < word.length(); i++) {
+            char36 = WordKit.cto36int(word.charAt(i));
+            if (charNode.znextChar[char36] == null)
+                return (null);
+            charNode = charNode.znextChar[char36];
+        }
+        return (charNode);
+    }
+
+    public CharNode searchCharNode(String word, int mode) {// mode0是标准搜索，mode1会把搜索的这个单词对应的子树（如无）创建出来并返回单词对应的charnode
+        switch (mode) {
+            case 0: {
+                return (searchCharNode(word));
+            }
+            case 1: {
+                CharNode charNode = headChar;
+                int char36;
+                for (int i = 0; i < word.length(); i++) {
+                    char36 = WordKit.cto36int(word.charAt(i));
+                    if (charNode.znextChar[char36] == null)
+                        charNode.znextChar[char36] = new CharNode(word.charAt(i));
+                    charNode = charNode.znextChar[char36];
+                }
+                return (charNode);
+            }
+            default: {
+                System.out.println("mode error in searchCharNode");
+                return (null);
+            }
+        }
+    }
+
+    public void insertWord(String word, int counter) {// 标准的词插入
+        CharNode charNode = searchCharNode(word, 1);
+        charNode.insertFreqNode(counter);
+    }
+
+    public void saveAt(String path, int threadNum) throws InterruptedException {
+        RunnableSave[] runnableSaveArray=new RunnableSave[threadNum];
+        for(int i=0;i<threadNum-1;i++)runnableSaveArray[i]=new RunnableSave(this.headChar.znextChar,(36/threadNum)*i,((36)/threadNum)*(i+1)-1,path);
+        runnableSaveArray[threadNum-1]=new RunnableSave(this.headChar.znextChar,(36/threadNum)*(threadNum-1), 36-1,path);
+
+        Thread threadArray[]=new Thread[threadNum];
+        for(int i=0;i<threadNum;i++)threadArray[i]=new Thread(runnableSaveArray[i],"Thread："+i);
+        for(int i=0;i<threadNum;i++)threadArray[i].start();
+        for(int i=0;i<threadNum;i++)threadArray[i].join();
+    }
+
+    class RunnableSave implements Runnable {
+        private int begin, end;
+        private CharNode[] charNodeArray;
+        private String path;
+
+        public RunnableSave(CharNode[] charNodeArray, int begin, int end, String path) {
+            this.begin = begin;
+            this.end = end;
+            this.charNodeArray = charNodeArray;
+            this.path = path;
+        }
+
+        public void run() {
+            for (int i = begin; i <= end; i++) {
+                CharNode charNode = charNodeArray[i];
+                System.out.println("creating index file:" + (i + 1));
+                File tempfile = new File(path + "\\_" + charNode.thisChar + ".txt");
+
+                try {
+                    tempfile.createNewFile();
+                    FileWriter fileWriter=new FileWriter(tempfile);
+                    String jsonString=JSON.toJSONString(charNode);
+                    fileWriter.write(jsonString);
+                    fileWriter.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
 }
