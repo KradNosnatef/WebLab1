@@ -31,23 +31,22 @@ public class Pretreater {//预处理后将文档保存为JSON String然后返回
         return(pretreat());
     }
 
+    //预处理中的单词约定长度不超过20，这意味着搜索的时候搜索词条也应被处理到这个长度
     private String pretreat(){
         String[] wordsArray=new String[16384];               //按需
         String word;
 
         int j=0,beginIndex=0;//分词-词根还原-去停用词
         for(int i=0;i<string.length();i++){
-        	//System.out.println("char is: "+string.charAt(i));
-            if(WordKit.isSeparator(string.charAt(i))){
+            if(WordKit.isSeparator(string, i)){
                 if(beginIndex==i)beginIndex++;
                 else{
                     word=WordKit.stemming(string.substring(beginIndex, i));
+                    if(word.length()>20)word=word.substring(0,19);
                     if(WordKit.isStopWord(word)){
-                        //System.out.println("stop word is:"+word);
                     }
                     else{
                         wordsArray[j]=word;
-                        //System.out.println("word is:"+word);
                         j++;
                     }
                     beginIndex=i+1;

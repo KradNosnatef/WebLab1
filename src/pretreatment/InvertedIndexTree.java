@@ -1,6 +1,8 @@
 package pretreatment;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
@@ -23,16 +25,16 @@ public class InvertedIndexTree {
         public FreqNode freqNode;
 
         public CharNode() {// 简单的留空节点
-            znextChar = new CharNode[36];
-            for (int i = 0; i < 36; i++)
+            znextChar = new CharNode[37];
+            for (int i = 0; i < 37; i++)
                 znextChar[i] = null;
             freqNode = new FreqNode(-1);
         }
 
-        public CharNode(char c) {// 明确本节点是什么字母
-            this.thisChar = c;
-            znextChar = new CharNode[36];
-            for (int i = 0; i < 36; i++)
+        public CharNode(char c) {// 明确本节点是什么字母    
+            thisChar=WordKit.to_dash(c);
+            znextChar = new CharNode[37];
+            for (int i = 0; i < 37; i++)
                 znextChar[i] = null;
             freqNode = new FreqNode(-1);
         }
@@ -114,59 +116,63 @@ public class InvertedIndexTree {
             }
         }
 
-        public void graft(CharNode charNode2){//嫁接，将charNode2上的freq链表拼接到本节点链表上，删除其head以外的节点，不对其它节点作出操作
-            if(this.freqNode.frequency==1||charNode2.freqNode.frequency==1){//有序拼接
+        public void graft(CharNode charNode2) {// 嫁接，将charNode2上的freq链表拼接到本节点链表上，删除其head以外的节点，不对其它节点作出操作
+            if (this.freqNode.frequency == 1 || charNode2.freqNode.frequency == 1) {// 有序拼接
                 this.freqNode.initSort();
                 charNode2.freqNode.initSort();
 
-                FreqNode headBuf,freqNodeBuf,freqNodeBuf1=this.freqNode.znext,freqNodeBuf2=charNode2.freqNode.znext;
-                freqNodeBuf=new FreqNode(-1,1);
-                headBuf=freqNodeBuf;
+                FreqNode headBuf, freqNodeBuf, freqNodeBuf1 = this.freqNode.znext,
+                        freqNodeBuf2 = charNode2.freqNode.znext;
+                freqNodeBuf = new FreqNode(-1, 1);
+                headBuf = freqNodeBuf;
 
-                int shorter=0;
-                for(;;){
-                    if(freqNodeBuf1==null)shorter=1;
-                    if(freqNodeBuf2==null)shorter=2;
-                    if(shorter!=0)break;
+                int shorter = 0;
+                for (;;) {
+                    if (freqNodeBuf1 == null)
+                        shorter = 1;
+                    if (freqNodeBuf2 == null)
+                        shorter = 2;
+                    if (shorter != 0)
+                        break;
 
-                    if(freqNodeBuf1.counter<freqNodeBuf2.counter){
-                        freqNodeBuf.znext=new FreqNode(freqNodeBuf1.counter,freqNodeBuf1.frequency);
-                        freqNodeBuf=freqNodeBuf.znext;
-                        freqNodeBuf1=freqNodeBuf1.znext;
-                    }
-                    else if(freqNodeBuf1.counter==freqNodeBuf2.counter){
-                        freqNodeBuf.znext=new FreqNode(freqNodeBuf1.counter,freqNodeBuf1.frequency+freqNodeBuf2.frequency);
-                        freqNodeBuf=freqNodeBuf.znext;
-                        freqNodeBuf1=freqNodeBuf1.znext;
-                        freqNodeBuf2=freqNodeBuf2.znext;
-                    }
-                    else {
-                        freqNodeBuf.znext=new FreqNode(freqNodeBuf2.counter,freqNodeBuf2.frequency);
-                        freqNodeBuf=freqNodeBuf.znext;
-                        freqNodeBuf2=freqNodeBuf2.znext;
+                    if (freqNodeBuf1.counter < freqNodeBuf2.counter) {
+                        freqNodeBuf.znext = new FreqNode(freqNodeBuf1.counter, freqNodeBuf1.frequency);
+                        freqNodeBuf = freqNodeBuf.znext;
+                        freqNodeBuf1 = freqNodeBuf1.znext;
+                    } else if (freqNodeBuf1.counter == freqNodeBuf2.counter) {
+                        freqNodeBuf.znext = new FreqNode(freqNodeBuf1.counter,
+                                freqNodeBuf1.frequency + freqNodeBuf2.frequency);
+                        freqNodeBuf = freqNodeBuf.znext;
+                        freqNodeBuf1 = freqNodeBuf1.znext;
+                        freqNodeBuf2 = freqNodeBuf2.znext;
+                    } else {
+                        freqNodeBuf.znext = new FreqNode(freqNodeBuf2.counter, freqNodeBuf2.frequency);
+                        freqNodeBuf = freqNodeBuf.znext;
+                        freqNodeBuf2 = freqNodeBuf2.znext;
                     }
                 }
 
-                if(shorter==1)freqNodeBuf.znext=freqNodeBuf2;
-                else freqNodeBuf.znext=freqNodeBuf1;
-                this.freqNode=headBuf;
-                charNode2.freqNode.znext=null;
-            }
-            else {//无序拼接
-                FreqNode freqNodeBuf=this.freqNode.getTail();
-                freqNodeBuf.znext=charNode2.freqNode.znext;
-                charNode2.freqNode.znext=null;
+                if (shorter == 1)
+                    freqNodeBuf.znext = freqNodeBuf2;
+                else
+                    freqNodeBuf.znext = freqNodeBuf1;
+                this.freqNode = headBuf;
+                charNode2.freqNode.znext = null;
+            } else {// 无序拼接
+                FreqNode freqNodeBuf = this.freqNode.getTail();
+                freqNodeBuf.znext = charNode2.freqNode.znext;
+                charNode2.freqNode.znext = null;
             }
         }
 
-        public void merge(CharNode charNode2){//合并，把以charNode2为根的子树合并到本节点上，请务必保证本节点和它节点是“同位体”
+        public void merge(CharNode charNode2) {// 合并，把以charNode2为根的子树合并到本节点上，请务必保证本节点和它节点是“同位体”
             graft(charNode2);
-            for(int i=0;i<36;i++){
-                if(this.znextChar[i]==null){
-                    this.znextChar[i]=charNode2.znextChar[i];
-                    charNode2.znextChar[i]=null;
-                }
-                else if(charNode2.znextChar[i]!=null)this.znextChar[i].merge(charNode2.znextChar[i]);
+            for (int i = 0; i < 37; i++) {
+                if (this.znextChar[i] == null) {
+                    this.znextChar[i] = charNode2.znextChar[i];
+                    charNode2.znextChar[i] = null;
+                } else if (charNode2.znextChar[i] != null)
+                    this.znextChar[i].merge(charNode2.znextChar[i]);
             }
         }
 
@@ -187,20 +193,16 @@ public class InvertedIndexTree {
                 this.znext = null;
             }
 
-            public int getLength(){//返回自己以后（不含自己）的链表节点数量
-                int length=0;
-                FreqNode freqNode=this.znext;
-                for(;;){
-                    if(freqNode==null)break;
-                    length++;
-                    freqNode=freqNode.znext;
-                }
-                return(length);
+            public int getLength() {// 返回自己以后（不含自己）的链表节点数量
+                if(this.znext==null)return(0);
+                else return(this.znext.getLength()+1);
             }
 
-            public FreqNode getTail(){
-                if(this.znext==null)return(this);
-                else return(this.znext.getTail());
+            public FreqNode getTail() {
+                if (this.znext == null)
+                    return (this);
+                else
+                    return (this.znext.getTail());
             }
 
             // 对以本节点为head的无序链表的counter升序排序，并且会对同counter的节点作合并处理，如果链表已经有序则无操作直接返回
@@ -210,7 +212,7 @@ public class InvertedIndexTree {
                     return;
                 }
                 if (frequency == 1) {
-                    //System.out.println("already initiated");
+                    // System.out.println("already initiated");
                     return;
                 }
                 this.frequency = 1;
@@ -260,20 +262,20 @@ public class InvertedIndexTree {
 
     public InvertedIndexTree() {
         headChar = new CharNode();
-        for(int i=0;i<36;i++){
-            headChar.znextChar[i]=new CharNode(WordKit.int36toc(i));
+        for (int i = 0; i < 37; i++) {
+            headChar.znextChar[i] = new CharNode(WordKit.int37toc(i));
         }
     }
 
     public CharNode searchCharNode(String word) {// 标准搜索，返回word对应的charnode，如无则返回null
         CharNode charNode = headChar;
 
-        int char36;
+        int char37;
         for (int i = 0; i < word.length(); i++) {
-            char36 = WordKit.cto36int(word.charAt(i));
-            if (charNode.znextChar[char36] == null)
+            char37 = WordKit.cto37int(word.charAt(i));
+            if (charNode.znextChar[char37] == null)
                 return (null);
-            charNode = charNode.znextChar[char36];
+            charNode = charNode.znextChar[char37];
         }
         return (charNode);
     }
@@ -285,12 +287,12 @@ public class InvertedIndexTree {
             }
             case 1: {
                 CharNode charNode = headChar;
-                int char36;
+                int char37;
                 for (int i = 0; i < word.length(); i++) {
-                    char36 = WordKit.cto36int(word.charAt(i));
-                    if (charNode.znextChar[char36] == null)
-                        charNode.znextChar[char36] = new CharNode(word.charAt(i));
-                    charNode = charNode.znextChar[char36];
+                    char37 = WordKit.cto37int(word.charAt(i));
+                    if (charNode.znextChar[char37] == null)
+                        charNode.znextChar[char37] = new CharNode(word.charAt(i));
+                    charNode = charNode.znextChar[char37];
                 }
                 return (charNode);
             }
@@ -307,14 +309,20 @@ public class InvertedIndexTree {
     }
 
     public void saveAt(String path, int threadNum) throws InterruptedException {
-        RunnableSave[] runnableSaveArray=new RunnableSave[threadNum];
-        for(int i=0;i<threadNum-1;i++)runnableSaveArray[i]=new RunnableSave(this.headChar.znextChar,(36/threadNum)*i,((36)/threadNum)*(i+1)-1,path);
-        runnableSaveArray[threadNum-1]=new RunnableSave(this.headChar.znextChar,(36/threadNum)*(threadNum-1), 36-1,path);
+        RunnableSave[] runnableSaveArray = new RunnableSave[threadNum];
+        for (int i = 0; i < threadNum - 1; i++)
+            runnableSaveArray[i] = new RunnableSave(this.headChar.znextChar, (37 / threadNum) * i,
+                    ((37) / threadNum) * (i + 1) - 1, path);
+        runnableSaveArray[threadNum - 1] = new RunnableSave(this.headChar.znextChar, (37 / threadNum) * (threadNum - 1),
+                37 - 1, path);
 
-        Thread threadArray[]=new Thread[threadNum];
-        for(int i=0;i<threadNum;i++)threadArray[i]=new Thread(runnableSaveArray[i],"Thread："+i);
-        for(int i=0;i<threadNum;i++)threadArray[i].start();
-        for(int i=0;i<threadNum;i++)threadArray[i].join();
+        Thread threadArray[] = new Thread[threadNum];
+        for (int i = 0; i < threadNum; i++)
+            threadArray[i] = new Thread(runnableSaveArray[i], "Thread：" + i);
+        for (int i = 0; i < threadNum; i++)
+            threadArray[i].start();
+        for (int i = 0; i < threadNum; i++)
+            threadArray[i].join();
     }
 
     class RunnableSave implements Runnable {
@@ -337,8 +345,8 @@ public class InvertedIndexTree {
 
                 try {
                     tempfile.createNewFile();
-                    FileWriter fileWriter=new FileWriter(tempfile);
-                    String jsonString=JSON.toJSONString(charNode);
+                    FileWriter fileWriter = new FileWriter(tempfile);
+                    String jsonString = JSON.toJSONString(charNode);
                     fileWriter.write(jsonString);
                     fileWriter.close();
                 } catch (IOException e) {
@@ -348,9 +356,53 @@ public class InvertedIndexTree {
         }
     }
 
-    public void loadFrom(String path,int threadNum){
+    public void loadFrom(String path, int threadNum) throws InterruptedException {
+        RunnableLoad[] runnableLoadArray = new RunnableLoad[threadNum];
+        for (int i = 0; i < threadNum - 1; i++)
+            runnableLoadArray[i] = new RunnableLoad(this.headChar.znextChar, (37 / threadNum) * i,
+                    ((37) / threadNum) * (i + 1) - 1, path);
+        runnableLoadArray[threadNum - 1] = new RunnableLoad(this.headChar.znextChar, (37 / threadNum) * (threadNum - 1),
+                37 - 1, path);
 
+        Thread threadArray[] = new Thread[threadNum];
+        for (int i = 0; i < threadNum; i++)
+            threadArray[i] = new Thread(runnableLoadArray[i], "Thread：" + i);
+        for (int i = 0; i < threadNum; i++)
+            threadArray[i].start();
+        for (int i = 0; i < threadNum; i++)
+            threadArray[i].join();
     }
 
+    class RunnableLoad implements Runnable {
+        private int begin, end;
+        private CharNode[] charNodeArray;
+        private String path;
 
+        public RunnableLoad(CharNode[] charNodeArray, int begin, int end, String path) {
+            this.begin = begin;
+            this.end = end;
+            this.charNodeArray=charNodeArray;
+            this.path = path;
+        }
+
+        public void run() {
+            for (int i = begin; i <= end; i++) {
+                CharNode charNode=null;
+                File tempfile = new File(path + "\\_" + WordKit.int37toc(i) + ".txt");
+
+                try {
+                    FileReader fileReader = new FileReader(tempfile);
+                    char[] charBuf=new char[1048576];                                                   //按需
+                    int len=fileReader.read(charBuf);
+                    String jsonString=new String(charBuf,0,len);
+                    fileReader.close();
+                    charNode=JSON.parseObject(jsonString,CharNode.class);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                charNodeArray[i]=charNode;
+            }
+        }
+    }
 }

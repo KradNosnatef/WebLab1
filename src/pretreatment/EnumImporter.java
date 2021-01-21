@@ -70,6 +70,7 @@ public class EnumImporter {// 给文件夹路径，枚举其中的文档，整�
         private File[] fileArray;
         private Pretreater pretreater;
         private String filePath;
+        private int logSignal;
 
         public RunnableImport(File[] fileArray, int begin, int end, String filePath) {// end(含)
             this.fileArray = fileArray;
@@ -80,6 +81,8 @@ public class EnumImporter {// 给文件夹路径，枚举其中的文档，整�
         }
 
         public void run() {
+            if(Thread.currentThread().getName().compareTo("Thread：" + 0)==0)this.logSignal=1;
+            else this.logSignal=0;
             for (int i = begin; i <= end; i++) {
                 try {
                     runnableImportJSONString(pretreater.pretreatFile(fileArray[i], i), i);
@@ -91,8 +94,8 @@ public class EnumImporter {// 给文件夹路径，枚举其中的文档，整�
         }
 
         private void runnableImportJSONString(String jsonString, int counter) throws IOException {
-            if (counter == (counter / 1000) * 1000)
-                System.out.println(Thread.currentThread().getName() + " writing " + counter);
+            if ((counter == (counter / 1000) * 1000)&&(logSignal==1))
+                System.out.println(Thread.currentThread().getName() + " writing " + counter +" of "+end);
             String filePath = this.filePath + "\\" + counter + ".txt";
             File file = new File(filePath);
 

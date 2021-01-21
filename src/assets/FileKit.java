@@ -4,7 +4,7 @@ import java.io.File;
 
 public class FileKit {// 一些文件工具
     
-    public static void cleanRoom(String path,int threadNum){//如无path路径则建立这个路径文件夹，如有则清空文件夹内容
+    public static void cleanRoom(String path,int threadNum) throws InterruptedException {// 如无path路径则建立这个路径文件夹，如有则清空文件夹内容
         File file=new File(path);
         if(file.isDirectory()==false){
             file.mkdirs();
@@ -18,9 +18,15 @@ public class FileKit {// 一些文件工具
         for(int i=0;i<threadNum-1;i++)runnableCleanRoomArray[i] = new RunnableCleanRoom(fileArray, (num / threadNum) * i,(num / threadNum) * (i + 1) - 1);
         runnableCleanRoomArray[threadNum - 1] = new RunnableCleanRoom(fileArray,(num / threadNum) * (threadNum - 1), num - 1);
         
+        Thread threadArray[] = new Thread[threadNum];
+        for (int i = 0; i < threadNum; i++)
+            threadArray[i] = new Thread(runnableCleanRoomArray[i], "Thread：" + i);
+        for (int i = 0; i < threadNum; i++)
+            threadArray[i].start();
+        for(int i=0;i<threadNum;i++)threadArray[i].join();
     }
 
-    class RunnableCleanRoom implements Runnable{
+    static class RunnableCleanRoom implements Runnable{
         private int begin,end;
         private File[] fileArray;
         
