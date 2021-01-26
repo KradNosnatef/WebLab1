@@ -14,7 +14,7 @@ public class EnumImporter {// 给文件夹路径，枚举其中的文档，整�
 
     public EnumImporter(String rootFileDirectory) {
         rootFile = new File(rootFileDirectory);
-        new Pretreater();
+        //new Pretreater();
         counter = 0;
         fileToBePretreatArray = new File[1048576]; // 按需
         dfs(rootFile);
@@ -116,6 +116,7 @@ public class EnumImporter {// 给文件夹路径，枚举其中的文档，整�
         private PretreatedFile[] pretreatedFileArray;
         int begin;
         int end;
+        int logSignal;
 
         public RunnableLoad(String filePath, PretreatedFile[] pretreatedFileArray, int begin, int end) {
             this.filePath = filePath;
@@ -125,9 +126,11 @@ public class EnumImporter {// 给文件夹路径，枚举其中的文档，整�
         }
 
         public void run() {
+            if(Thread.currentThread().getName().compareTo("Thread：" + 0)==0)this.logSignal=1;
+            else this.logSignal=0;
             for (int i = begin; i <= end; i++) {
                 try {
-                    System.out.println(Thread.currentThread().getName()+" loading"+i);
+                    if ((i == (i / 1000) * 1000)&&(logSignal==1))System.out.println(Thread.currentThread().getName()+" loading"+i+" of "+end);
                     File file = new File(filePath+"\\" + i + ".txt");
                     FileReader fileReader;
                     fileReader = new FileReader(file);

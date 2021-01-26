@@ -31,7 +31,7 @@ public class Pretreater {//预处理后将文档保存为JSON String然后返回
         return(pretreat());
     }
 
-    //预处理中的单词约定长度不超过20，这意味着搜索的时候搜索词条也应被处理到这个长度
+    
     private String pretreat(){
         String[] wordsArray=new String[16384];               //按需
         String word;
@@ -42,7 +42,6 @@ public class Pretreater {//预处理后将文档保存为JSON String然后返回
                 if(beginIndex==i)beginIndex++;
                 else{
                     word=WordKit.stemming(string.substring(beginIndex, i));
-                    if(word.length()>20)word=word.substring(0,19);
                     if(WordKit.isStopWord(word)){
                     }
                     else{

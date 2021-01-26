@@ -13,6 +13,7 @@ public class FileKit {// 一些文件工具
 
         File[] fileArray=file.listFiles();
         int num=fileArray.length;
+        if(num==0)return;
 
         RunnableCleanRoom[] runnableCleanRoomArray=new RunnableCleanRoom[num];
         for(int i=0;i<threadNum-1;i++)runnableCleanRoomArray[i] = new RunnableCleanRoom(fileArray, (num / threadNum) * i,(num / threadNum) * (i + 1) - 1);

@@ -17,7 +17,7 @@ public class Inverter {
         for(int i=0;i<pretreatedFile.getWordsNum();i++){
             invertedIndexTree.insertWord(wordsArray[i],counter);
         }
-        System.out.println("file "+counter+" inverted");
+        //System.out.println("file "+counter+" inverted");
     }
 
     public void invertAll() throws IOException, InterruptedException {

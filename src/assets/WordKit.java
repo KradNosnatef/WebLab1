@@ -66,7 +66,10 @@ public class WordKit {//简单的字词工具
     }
 
     //词根还原器,目前只做了全小写化
+    //预处理中的单词约定长度不超过16，这意味着搜索的时候搜索词条也应被处理到这个长度
     public static String stemming(String word){
+        
+        if(word.length()>16)return(word.toLowerCase().substring(0,15));
         return(word.toLowerCase());
     }
 }

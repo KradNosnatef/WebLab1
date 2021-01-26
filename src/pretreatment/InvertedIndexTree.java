@@ -329,6 +329,7 @@ public class InvertedIndexTree {
         private int begin, end;
         private CharNode[] charNodeArray;
         private String path;
+        private int logSignal;
 
         public RunnableSave(CharNode[] charNodeArray, int begin, int end, String path) {
             this.begin = begin;
@@ -338,9 +339,12 @@ public class InvertedIndexTree {
         }
 
         public void run() {
+            if(Thread.currentThread().getName().compareTo("Thread：" + 0)==0)this.logSignal=1;
+            else this.logSignal=0;
+
             for (int i = begin; i <= end; i++) {
                 CharNode charNode = charNodeArray[i];
-                System.out.println("creating index file:" + (i + 1));
+                System.out.println("creating index file:" + (i + 1) + " of "+end+1);
                 File tempfile = new File(path + "\\_" + charNode.thisChar + ".txt");
 
                 try {
@@ -377,6 +381,7 @@ public class InvertedIndexTree {
         private int begin, end;
         private CharNode[] charNodeArray;
         private String path;
+        private int logSignal;
 
         public RunnableLoad(CharNode[] charNodeArray, int begin, int end, String path) {
             this.begin = begin;
@@ -386,6 +391,9 @@ public class InvertedIndexTree {
         }
 
         public void run() {
+            if(Thread.currentThread().getName().compareTo("Thread：" + 0)==0)this.logSignal=1;
+            else this.logSignal=0;
+
             for (int i = begin; i <= end; i++) {
                 CharNode charNode=null;
                 File tempfile = new File(path + "\\_" + WordKit.int37toc(i) + ".txt");
