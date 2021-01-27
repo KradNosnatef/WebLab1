@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import com.alibaba.fastjson.JSON;
@@ -177,6 +178,20 @@ public class InvertedIndexTree {
             }
         }
 
+        public int[] getCounterArrayOfFreqList(){//把本节点下的freq链表有序化，然后抽出其中的counter信息组成链表返回
+            this.freqNode.initSort();
+            if(this.freqNode.getLength()==0)return(null);
+            int[] counterArray=new int[this.freqNode.getLength()];
+            FreqNode freqNodeBuf=this.freqNode.znext;
+            for(int i=0;;){
+                counterArray[i]=freqNodeBuf.counter;
+                i++;
+                freqNodeBuf=freqNodeBuf.znext;
+                if(freqNodeBuf==null)break;
+            }
+            return(counterArray);
+        }
+
         public static class FreqNode {
             public int counter;// 为-1代表是一个head节点
             public int frequency;// head节点的该值为0代表未经初始化（无序），为1代表有序（升序！）
@@ -271,7 +286,7 @@ public class InvertedIndexTree {
         for(int i=26;i<36;i++)headChar.znextChar[i].thisChar=(char)(i-26+'0');
     }
 
-    public CharNode searchCharNode(String word) {// 标准搜索，返回word对应的charnode，如无则返回null
+    public CharNode searchCharNode(String word) {// 标准搜索，返回word对应的charnode，如无则返回null，注意，返回非null不代表这个词存在，只代表这个节点存在
         CharNode charNode = headChar;
 
         int char37;
@@ -425,7 +440,7 @@ public class InvertedIndexTree {
         }
     }
 
-    public static int boolSearcher(String expression){//句首必须是左括号，返回从该括号到其匹配右括号为止的表达式的结果，变量（及可能存在的取非运算符^）必须被且仅被一对括号环绕，严禁无端空格
+    public static int boolSearcher(String expression){//句首必须是左括号，返回从该括号到其匹配右括号为止的表达式的结果，变量必须被且仅被一对括号环绕，严禁无端空格
         int depth=0;
         char operator=0;
         int i=0;
@@ -451,6 +466,10 @@ public class InvertedIndexTree {
                     if(depth==1)operator='|';
                     break;
                 }
+                case '^':{
+                    if(depth==1)operator='^';
+                    break;
+                }
                 default:break;
             }
             if(depth==0)break;
@@ -459,14 +478,8 @@ public class InvertedIndexTree {
 
         if(depth==0){
             String stringBuf;
-            if(expression.charAt(1)=='^'){
-                stringBuf=expression.substring(2, i);
-                return(-Integer.valueOf(stringBuf));
-            }
-            else {
-                stringBuf=expression.substring(1,i);
-                return(Integer.valueOf(stringBuf));
-            }
+            stringBuf=expression.substring(1,i);
+            return(Integer.valueOf(stringBuf));
         }
 
         switch(operator){
@@ -476,9 +489,71 @@ public class InvertedIndexTree {
             case '|':{
                 return(boolSearcher(expression.substring(1))+boolSearcher(expression.substring(i+1)));
             }
+            case '^':{
+                return(-boolSearcher(expression.substring(i+1)));
+            }
         }
 
         System.out.println("invalid input");
         return(0);
+    }
+
+    public static int[] counterArrayAnd(int[] counterArray1,int[] counterArray2){
+		ArrayList<Integer> counterArrayList=new ArrayList<Integer>();
+		for(int i=0,j=0;i<counterArray1.length && j<counterArray2.length;) {
+			if(counterArray1[i] == counterArray2[j]) {
+				counterArrayList.add(counterArray1[i]);
+				i++;
+				j++;
+			}
+			else if(counterArray1[i] > counterArray2[j]) {
+				j++;
+			}
+			else {
+				i++;
+			}	
+		}
+ 
+		int[] result = new int[counterArrayList.size()];
+		for(int i=0;i<result.length;i++)result[i]=counterArrayList.get(i);
+		return(result);
+    }
+    public static int[] counterArrayOr(int[] counterArray1,int[] counterArray2){
+        ArrayList<Integer> counterArrayList=new ArrayList<Integer>();
+        
+        int i,j;
+		for(i=0,j=0;i<counterArray1.length && j<counterArray2.length;) {
+			if(counterArray1[i] == counterArray2[j]) {
+				counterArrayList.add(counterArray1[i]);
+				i++;
+				j++;
+			}
+			else if(counterArray1[i] > counterArray2[j]) {
+                counterArrayList.add(counterArray2[j]);
+				j++;
+			}
+			else {
+                counterArrayList.add(counterArray1[i]);
+				i++;
+			}	
+        }
+        if(i<counterArray1.length)for(;i<counterArray1.length;i++)counterArrayList.add(counterArray1[i]);
+        if(j<counterArray2.length)for(;j<counterArray2.length;j++)counterArrayList.add(counterArray2[j]);
+ 
+		int[] result = new int[counterArrayList.size()];
+		for(int k=0;k<result.length;k++)result[k]=counterArrayList.get(k);
+		return(result);
+    }
+    public static int[] counterArrayNot(int[] counterArray,int maxCounter){
+        int i=0,j=0;
+        ArrayList<Integer> counterArrayList=new ArrayList<Integer>();
+        if(counterArray.length!=0)for(i=0;i<=maxCounter;i++){
+            if(counterArray[j]!=i)counterArrayList.add(i);
+            else if(j<counterArray.length-1)j++;
+        }
+        else for(i=0;i<=maxCounter;i++)counterArrayList.add(i);
+        int[] result = new int[counterArrayList.size()];
+		for(int k=0;k<result.length;k++)result[k]=counterArrayList.get(k);
+		return(result);
     }
 }
