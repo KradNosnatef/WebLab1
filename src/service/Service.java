@@ -113,7 +113,8 @@ public class Service {
             String[] optionArray={  "return to last menu",
                                     "create new index by pretreated file",
                                     "load already-exist index file from",
-                                    "save index as file"};
+                                    "save index as file",
+                                    "ready for search"};
             if(inverter==null)manuPrinter("please create or load index first", optionArray);
             else manuPrinter("index established,now chose your option",optionArray);
             
@@ -129,6 +130,7 @@ public class Service {
                 case '1':{
                     inverter=new Inverter("T:\\TEMP-Workspace");
                     inverter.invertAll();
+                    //inverter.invertedIndexTree.saveAt("T:\\IndexSpace",12);
                     break;
                 }
                 case '2':{

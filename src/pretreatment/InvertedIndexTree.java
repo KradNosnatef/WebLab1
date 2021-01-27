@@ -1,5 +1,6 @@
 package pretreatment;
 
+import java.beans.Expression;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -19,7 +20,7 @@ import assets.WordKit;
 public class InvertedIndexTree {
     public CharNode headChar; // wordtree的头，本身不代表任何字母
 
-    public class CharNode {
+    public static class CharNode {
         public char thisChar;
         public CharNode[] znextChar;
         public FreqNode freqNode;
@@ -176,7 +177,7 @@ public class InvertedIndexTree {
             }
         }
 
-        public class FreqNode {
+        public static class FreqNode {
             public int counter;// 为-1代表是一个head节点
             public int frequency;// head节点的该值为0代表未经初始化（无序），为1代表有序（升序！）
             public FreqNode znext;
@@ -260,11 +261,14 @@ public class InvertedIndexTree {
         }
     }
 
-    public InvertedIndexTree() {
+    public InvertedIndexTree() {    //注意留有测试期代码
         headChar = new CharNode();
         for (int i = 0; i < 37; i++) {
             headChar.znextChar[i] = new CharNode(WordKit.int37toc(i));
         }
+
+        //实际环境需删除
+        for(int i=26;i<36;i++)headChar.znextChar[i].thisChar=(char)(i-26+'0');
     }
 
     public CharNode searchCharNode(String word) {// 标准搜索，返回word对应的charnode，如无则返回null
@@ -280,7 +284,7 @@ public class InvertedIndexTree {
         return (charNode);
     }
 
-    public CharNode searchCharNode(String word, int mode) {// mode0是标准搜索，mode1会把搜索的这个单词对应的子树（如无）创建出来并返回单词对应的charnode
+    public CharNode searchCharNode(String word, int mode) {// mode0是标准搜索，mode1会把搜索的这个单词对应的子树（如无）创建出来并返回单词对应的charnode，mode2执行标准搜索，但是会把搜到的那个charnode下的freq链表有序化
         switch (mode) {
             case 0: {
                 return (searchCharNode(word));
@@ -295,6 +299,11 @@ public class InvertedIndexTree {
                     charNode = charNode.znextChar[char37];
                 }
                 return (charNode);
+            }
+            case 2:{
+                CharNode charNode=searchCharNode(word);
+                if(charNode!=null)charNode.freqNode.initSort();
+                return(charNode);
             }
             default: {
                 System.out.println("mode error in searchCharNode");
@@ -344,7 +353,7 @@ public class InvertedIndexTree {
 
             for (int i = begin; i <= end; i++) {
                 CharNode charNode = charNodeArray[i];
-                System.out.println("creating index file:" + (i + 1) + " of "+end+1);
+                System.out.println("creating index file:" + (i + 1) + " of "+(end+1));
                 File tempfile = new File(path + "\\_" + charNode.thisChar + ".txt");
 
                 try {
@@ -400,11 +409,13 @@ public class InvertedIndexTree {
 
                 try {
                     FileReader fileReader = new FileReader(tempfile);
-                    char[] charBuf=new char[1048576];                                                   //按需
+                    char[] charBuf=new char[134217728];                                                   //按需
                     int len=fileReader.read(charBuf);
                     String jsonString=new String(charBuf,0,len);
                     fileReader.close();
-                    charNode=JSON.parseObject(jsonString,CharNode.class);
+                    System.out.println(Thread.currentThread().getName()+"--this is "+WordKit.int37toc(i));
+                    charNode=JSON.parseObject(jsonString,InvertedIndexTree.CharNode.class);
+                    System.out.println("this is "+WordKit.int37toc(i));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -412,5 +423,62 @@ public class InvertedIndexTree {
                 charNodeArray[i]=charNode;
             }
         }
+    }
+
+    public static int boolSearcher(String expression){//句首必须是左括号，返回从该括号到其匹配右括号为止的表达式的结果，变量（及可能存在的取非运算符^）必须被且仅被一对括号环绕，严禁无端空格
+        int depth=0;
+        char operator=0;
+        int i=0;
+        for(;;i++){
+            if(i>=expression.length()){
+                System.out.println("invalid input");
+                return(0);
+            }
+            switch(expression.charAt(i)){
+                case '(':{
+                    depth++;
+                    break;
+                }
+                case ')':{
+                    depth--;
+                    break;
+                }
+                case '&':{
+                    if(depth==1)operator='&';
+                    break;
+                }
+                case '|':{
+                    if(depth==1)operator='|';
+                    break;
+                }
+                default:break;
+            }
+            if(depth==0)break;
+            if(operator!=0)break;
+        }
+
+        if(depth==0){
+            String stringBuf;
+            if(expression.charAt(1)=='^'){
+                stringBuf=expression.substring(2, i);
+                return(-Integer.valueOf(stringBuf));
+            }
+            else {
+                stringBuf=expression.substring(1,i);
+                return(Integer.valueOf(stringBuf));
+            }
+        }
+
+        switch(operator){
+            case '&':{
+                return(boolSearcher(expression.substring(1))*boolSearcher(expression.substring(i+1)));
+            }
+            case '|':{
+                return(boolSearcher(expression.substring(1))+boolSearcher(expression.substring(i+1)));
+            }
+        }
+
+        System.out.println("invalid input");
+        return(0);
     }
 }

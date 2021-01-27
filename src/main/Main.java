@@ -6,6 +6,7 @@ import com.alibaba.fastjson.JSON;
 
 import assets.FileKit;
 import pretreatment.EnumImporter;
+import pretreatment.InvertedIndexTree;
 import pretreatment.Inverter;
 import service.Service;
 
@@ -23,8 +24,9 @@ public class Main {
 		//System.out.println(JSON.toJSONString(inverter.invertedIndexTree.searchCharNode("automatically")));
 		//inverter.invertedIndexTree.saveAt("T:\\IndexSpace",12);
 
+		//System.out.println(InvertedIndexTree.boolSearcher("(((2)|(3))&(((1)|(^2))|(15)))"));
 
-		Service service=new Service();
-		service.gotoMainMenu();
+		//Service service=new Service();
+		//service.gotoMainMenu();
 	}
 }
