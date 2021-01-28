@@ -28,5 +28,6 @@ public class Inverter {
         for(int i=0;i<counts;i++){
             invert(pretreatedFileArray[i]);
         }
+        invertedIndexTree.counts=counts;
     }
 }

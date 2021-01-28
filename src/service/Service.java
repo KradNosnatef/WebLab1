@@ -4,8 +4,11 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+import com.alibaba.fastjson.JSON;
+
 import assets.FileKit;
 import pretreatment.EnumImporter;
+import pretreatment.InvertedIndexTree;
 import pretreatment.Inverter;
 
 public class Service {
@@ -18,7 +21,7 @@ public class Service {
                                     "clean room", 
                                     "import", 
                                     "establish or load index to ready for search"};
-        manuPrinter("Main Manu", optionArray);
+        menuPrinter("Main Manu", optionArray);
 
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
         char option = (char) bufferedReader.read();
@@ -46,7 +49,7 @@ public class Service {
         }
     }
 
-    private void manuPrinter(String title, String[] optionArray) {
+    private void menuPrinter(String title, String[] optionArray) {
         System.out.println("----" + title + "----");
         for (int i = 0; i < optionArray.length; i++) {
             System.out.println(" --" + i + ":" + optionArray[i]);
@@ -55,7 +58,7 @@ public class Service {
 
     private void gotoPretreatmentMenu() throws InterruptedException, IOException {
         String[] optionArray = { "return to last menu", "testbud1(small)", "testbud2(all)" };
-        manuPrinter("Pretreatment Menu", optionArray);
+        menuPrinter("Pretreatment Menu", optionArray);
 
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
         char option = (char) bufferedReader.read();
@@ -86,7 +89,7 @@ public class Service {
 
     private void gotoCleanRoomMenu() throws IOException, InterruptedException {
         String[] optionArray = { "return to last menu", "default" };
-        manuPrinter("Clean Room Menu", optionArray);
+        menuPrinter("Clean Room Menu", optionArray);
 
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
         char option = (char) bufferedReader.read();
@@ -115,8 +118,8 @@ public class Service {
                                     "load already-exist index file from",
                                     "save index as file",
                                     "ready for search"};
-            if(inverter==null)manuPrinter("please create or load index first", optionArray);
-            else manuPrinter("index established,now chose your option",optionArray);
+            if(inverter==null)menuPrinter("please create or load index first", optionArray);
+            else menuPrinter("index established,now chose your option",optionArray);
             
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
             char option = (char) bufferedReader.read();
@@ -143,6 +146,10 @@ public class Service {
                     else System.out.println("invalid input");
                     break;
                 }
+                case '4':{
+                    gotoSearchMenu(inverter.invertedIndexTree);
+                    break;
+                }
                 default:{
                     System.out.println("invalid input");
                     break;
@@ -150,6 +157,43 @@ public class Service {
             }
         }
 
+    }
+
+    private void gotoSearchMenu(InvertedIndexTree invertedIndexTree) throws IOException {
+        for(;;){
+            String[] optionArray={  "return to last menu",
+                                    "input bool expression to search",
+                                    "simple search"};
+            menuPrinter("bool Search", optionArray);
+            
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
+            char option = (char) bufferedReader.read();
+            
+            switch(option){
+                case '0':{
+                    return;
+                }
+                case '1':{
+                    System.out.println("input the bool expression");
+                    BufferedReader bufferedReader2 = new BufferedReader(new InputStreamReader(System.in));
+                    String expression=bufferedReader2.readLine();
+                    int[] result=invertedIndexTree.boolSearcher(expression);
+                    System.out.println(JSON.toJSONString(result));
+                    break;
+                }
+                case '2':{
+                    System.out.println("input the word");
+                    BufferedReader bufferedReader2 = new BufferedReader(new InputStreamReader(System.in));
+                    String expression=bufferedReader2.readLine();
+                    System.out.println(JSON.toJSONString(invertedIndexTree.searchCharNode(expression).freqNode));
+                    break;
+                }
+                default:{
+                    System.out.println("invalid input");
+                    break;
+                }
+            }
+        }
     }
 
 }

@@ -20,6 +20,7 @@ import assets.WordKit;
 
 public class InvertedIndexTree {
     public CharNode headChar; // wordtree的头，本身不代表任何字母
+    public int counts;//存储counter的数量，用于在布尔检索中求反
 
     public static class CharNode {
         public char thisChar;
@@ -161,7 +162,7 @@ public class InvertedIndexTree {
                 this.freqNode = headBuf;
                 charNode2.freqNode.znext = null;
             } else {// 无序拼接
-                FreqNode freqNodeBuf = this.freqNode.getTail();
+                FreqNode freqNodeBuf = this.freqNode.gvtTail();
                 freqNodeBuf.znext = charNode2.freqNode.znext;
                 charNode2.freqNode.znext = null;
             }
@@ -178,10 +179,10 @@ public class InvertedIndexTree {
             }
         }
 
-        public int[] getCounterArrayOfFreqList(){//把本节点下的freq链表有序化，然后抽出其中的counter信息组成链表返回
+        public int[] gvtCounterArrayOfFreqList(){//把本节点下的freq链表有序化，然后抽出其中的counter信息组成链表返回
             this.freqNode.initSort();
-            if(this.freqNode.getLength()==0)return(null);
-            int[] counterArray=new int[this.freqNode.getLength()];
+            if(this.freqNode.gvtLength()==0)return(null);
+            int[] counterArray=new int[this.freqNode.gvtLength()];
             FreqNode freqNodeBuf=this.freqNode.znext;
             for(int i=0;;){
                 counterArray[i]=freqNodeBuf.counter;
@@ -189,6 +190,7 @@ public class InvertedIndexTree {
                 freqNodeBuf=freqNodeBuf.znext;
                 if(freqNodeBuf==null)break;
             }
+            //System.out.println(JSON.toJSONString(counterArray));
             return(counterArray);
         }
 
@@ -209,16 +211,16 @@ public class InvertedIndexTree {
                 this.znext = null;
             }
 
-            public int getLength() {// 返回自己以后（不含自己）的链表节点数量
+            public int gvtLength() {// 返回自己以后（不含自己）的链表节点数量
                 if(this.znext==null)return(0);
-                else return(this.znext.getLength()+1);
+                else return(this.znext.gvtLength()+1);
             }
 
-            public FreqNode getTail() {
+            public FreqNode gvtTail() {
                 if (this.znext == null)
                     return (this);
                 else
-                    return (this.znext.getTail());
+                    return (this.znext.gvtTail());
             }
 
             // 对以本节点为head的无序链表的counter升序排序，并且会对同counter的节点作合并处理，如果链表已经有序则无操作直接返回
@@ -232,12 +234,13 @@ public class InvertedIndexTree {
                     return;
                 }
                 this.frequency = 1;
-                int num = getLength();
+                if(this.znext==null)return;
+                int num = gvtLength();
 
                 FreqNode freqNode = this.znext;
                 int[] buf = new int[num];
                 freqNode = this.znext;
-                for (int i = 0;;) {
+                for (int i = 0;;i++) {
                     if (freqNode == null)
                         break;
                     buf[i] = freqNode.counter;
@@ -247,7 +250,7 @@ public class InvertedIndexTree {
                 Arrays.sort(buf);
 
                 freqNode = this.znext;
-                for (int i = 0;;) {
+                for (int i = 0;;i++) {
                     if (freqNode == null)
                         break;
                     freqNode.counter = buf[i];
@@ -424,13 +427,14 @@ public class InvertedIndexTree {
 
                 try {
                     FileReader fileReader = new FileReader(tempfile);
-                    char[] charBuf=new char[134217728];                                                   //按需
+                    char[] charBuf=new char[1073741824];                                                   //按需
                     int len=fileReader.read(charBuf);
                     String jsonString=new String(charBuf,0,len);
+                    charBuf=null;
                     fileReader.close();
-                    System.out.println(Thread.currentThread().getName()+"--this is "+WordKit.int37toc(i));
+                    //System.out.println(Thread.currentThread().getName()+"--this is "+WordKit.int37toc(i));
                     charNode=JSON.parseObject(jsonString,InvertedIndexTree.CharNode.class);
-                    System.out.println("this is "+WordKit.int37toc(i));
+                    //System.out.println("this is "+WordKit.int37toc(i));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -440,14 +444,15 @@ public class InvertedIndexTree {
         }
     }
 
-    public static int boolSearcher(String expression){//句首必须是左括号，返回从该括号到其匹配右括号为止的表达式的结果，变量必须被且仅被一对括号环绕，严禁无端空格
+    public int[] boolSearcher(String expression){//句首必须是左括号，返回从该括号到其匹配右括号为止的表达式的结果，变量必须被且仅被一对括号环绕，严禁无端空格
         int depth=0;
         char operator=0;
         int i=0;
+        int[] result;
         for(;;i++){
             if(i>=expression.length()){
                 System.out.println("invalid input");
-                return(0);
+                return(null);
             }
             switch(expression.charAt(i)){
                 case '(':{
@@ -479,26 +484,30 @@ public class InvertedIndexTree {
         if(depth==0){
             String stringBuf;
             stringBuf=expression.substring(1,i);
-            return(Integer.valueOf(stringBuf));
+            result=searchCharNode(stringBuf,2).gvtCounterArrayOfFreqList();
+            if(result==null)result=new int[0];
+            return(result);
         }
 
         switch(operator){
             case '&':{
-                return(boolSearcher(expression.substring(1))*boolSearcher(expression.substring(i+1)));
+                return(counterArrayAnd(boolSearcher(expression.substring(1)),boolSearcher(expression.substring(i+1))));
             }
             case '|':{
-                return(boolSearcher(expression.substring(1))+boolSearcher(expression.substring(i+1)));
+                return(counterArrayOr(boolSearcher(expression.substring(1)),boolSearcher(expression.substring(i+1))));
             }
             case '^':{
-                return(-boolSearcher(expression.substring(i+1)));
+                return(counterArrayNot(boolSearcher(expression.substring(i+1))));
             }
         }
 
         System.out.println("invalid input");
-        return(0);
+        return(null);
     }
 
-    public static int[] counterArrayAnd(int[] counterArray1,int[] counterArray2){
+    public int[] counterArrayAnd(int[] counterArray1,int[] counterArray2){
+        if(counterArray1==null)counterArray1=new int[0];
+        if(counterArray2==null)counterArray2=new int[0];
 		ArrayList<Integer> counterArrayList=new ArrayList<Integer>();
 		for(int i=0,j=0;i<counterArray1.length && j<counterArray2.length;) {
 			if(counterArray1[i] == counterArray2[j]) {
@@ -518,7 +527,9 @@ public class InvertedIndexTree {
 		for(int i=0;i<result.length;i++)result[i]=counterArrayList.get(i);
 		return(result);
     }
-    public static int[] counterArrayOr(int[] counterArray1,int[] counterArray2){
+    public int[] counterArrayOr(int[] counterArray1,int[] counterArray2){
+        if(counterArray1==null)counterArray1=new int[0];
+        if(counterArray2==null)counterArray2=new int[0];
         ArrayList<Integer> counterArrayList=new ArrayList<Integer>();
         
         int i,j;
@@ -544,14 +555,15 @@ public class InvertedIndexTree {
 		for(int k=0;k<result.length;k++)result[k]=counterArrayList.get(k);
 		return(result);
     }
-    public static int[] counterArrayNot(int[] counterArray,int maxCounter){
+    public int[] counterArrayNot(int[] counterArray){
+        if(counterArray==null)counterArray=new int[0];
         int i=0,j=0;
         ArrayList<Integer> counterArrayList=new ArrayList<Integer>();
-        if(counterArray.length!=0)for(i=0;i<=maxCounter;i++){
+        if(counterArray.length!=0)for(i=0;i<counts;i++){
             if(counterArray[j]!=i)counterArrayList.add(i);
             else if(j<counterArray.length-1)j++;
         }
-        else for(i=0;i<=maxCounter;i++)counterArrayList.add(i);
+        else for(i=0;i<=counts;i++)counterArrayList.add(i);
         int[] result = new int[counterArrayList.size()];
 		for(int k=0;k<result.length;k++)result[k]=counterArrayList.get(k);
 		return(result);
