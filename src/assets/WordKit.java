@@ -4,8 +4,6 @@ public class WordKit {//简单的字词工具
 
     //一元分隔符判断器
     public static boolean isSeparator(char c){
-        if((c>='0')&&(c<='9'))return(true);//测试期间把数字排掉
-
         if(((c>='A')&&(c<='Z'))||((c>='a')&&(c<='z'))||((c>='0')&&(c<='9')))return(false);
         else return(true);
     }

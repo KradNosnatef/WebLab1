@@ -286,9 +286,6 @@ public class InvertedIndexTree {
         for (int i = 0; i < 37; i++) {
             headChar.znextChar[i] = new CharNode(WordKit.int37toc(i));
         }
-
-        //实际环境需删除
-        for(int i=26;i<36;i++)headChar.znextChar[i].thisChar=(char)(i-26+'0');
     }
 
     public CharNode searchCharNode(String word) {// 标准搜索，返回word对应的charnode，如无则返回null，注意，返回非null不代表这个词存在，只代表这个节点存在
