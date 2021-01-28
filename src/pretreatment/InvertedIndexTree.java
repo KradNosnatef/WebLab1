@@ -1,8 +1,6 @@
 package pretreatment;
 
-import java.beans.Expression;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -355,8 +353,7 @@ public class InvertedIndexTree {
         private int begin, end;
         private CharNode[] charNodeArray;
         private String path;
-        private int logSignal;
-
+        
         public RunnableSave(CharNode[] charNodeArray, int begin, int end, String path) {
             this.begin = begin;
             this.end = end;
@@ -365,8 +362,9 @@ public class InvertedIndexTree {
         }
 
         public void run() {
-            if(Thread.currentThread().getName().compareTo("Thread：" + 0)==0)this.logSignal=1;
-            else this.logSignal=0;
+            if (Thread.currentThread().getName().compareTo("Thread：" + 0) == 0) {
+            } else {
+            }
 
             for (int i = begin; i <= end; i++) {
                 CharNode charNode = charNodeArray[i];
@@ -407,18 +405,18 @@ public class InvertedIndexTree {
         private int begin, end;
         private CharNode[] charNodeArray;
         private String path;
-        private int logSignal;
-
+        
         public RunnableLoad(CharNode[] charNodeArray, int begin, int end, String path) {
             this.begin = begin;
             this.end = end;
-            this.charNodeArray=charNodeArray;
+            this.charNodeArray = charNodeArray;
             this.path = path;
         }
 
         public void run() {
-            if(Thread.currentThread().getName().compareTo("Thread：" + 0)==0)this.logSignal=1;
-            else this.logSignal=0;
+            if (Thread.currentThread().getName().compareTo("Thread：" + 0) == 0) {
+            } else {
+            }
 
             for (int i = begin; i <= end; i++) {
                 CharNode charNode=null;

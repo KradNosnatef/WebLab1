@@ -2,12 +2,6 @@ package main;
 
 import java.io.IOException;
 
-import com.alibaba.fastjson.JSON;
-
-import assets.FileKit;
-import pretreatment.EnumImporter;
-import pretreatment.InvertedIndexTree;
-import pretreatment.Inverter;
 import service.Service;
 
 public class Main {
