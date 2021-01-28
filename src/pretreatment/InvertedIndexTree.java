@@ -18,6 +18,8 @@ import assets.WordKit;
 //链表对应的单词首次被搜索会使它启动有序化
 //对两个树进行merge操作的时候，对于同单词合并，当且仅当两个链表都是无序链表时才使用简单拼接成一个新的无序链表，否则拼接成有序链表
 
+//有一些用gvt开头的，其实本来写的是get的，但是傻逼fastjson封装对象的时候会把这些用get开头的function跑一遍然后把结果储存成一个静态的对象，为了阻止它这样干就写作gvt了
+
 public class InvertedIndexTree {
     public CharNode headChar; // wordtree的头，本身不代表任何字母
     public int counts;//存储counter的数量，用于在布尔检索中求反
@@ -484,7 +486,14 @@ public class InvertedIndexTree {
         if(depth==0){
             String stringBuf;
             stringBuf=expression.substring(1,i);
-            result=searchCharNode(stringBuf,2).gvtCounterArrayOfFreqList();
+
+            stringBuf=WordKit.stemming(stringBuf);
+            char[] stringBuf2=stringBuf.toCharArray();
+            for(int j=0;j<stringBuf.length();j++)stringBuf2[j]=WordKit.to_dash(stringBuf2[j]);
+            stringBuf=new String(stringBuf2);
+
+            if(searchCharNode(stringBuf,2)!=null)result=searchCharNode(stringBuf,2).gvtCounterArrayOfFreqList();
+            else result=null;
             if(result==null)result=new int[0];
             return(result);
         }

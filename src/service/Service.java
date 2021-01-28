@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import com.alibaba.fastjson.JSON;
 
 import assets.FileKit;
+import assets.WordKit;
 import pretreatment.EnumImporter;
 import pretreatment.InvertedIndexTree;
 import pretreatment.Inverter;
@@ -185,6 +186,12 @@ public class Service {
                     System.out.println("input the word");
                     BufferedReader bufferedReader2 = new BufferedReader(new InputStreamReader(System.in));
                     String expression=bufferedReader2.readLine();
+
+                    expression=WordKit.stemming(expression);
+                    char[] expBuf=expression.toCharArray();
+                    for(int i=0;i<expression.length();i++)expBuf[i]=WordKit.to_dash(expBuf[i]);
+                    expression=new String(expBuf);
+
                     System.out.println(JSON.toJSONString(invertedIndexTree.searchCharNode(expression).freqNode));
                     break;
                 }
